@@ -1,0 +1,61 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  root: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  inputWrapper: {
+    width: "100%",
+    height: 65,
+    borderColor: "#303030",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderRadius: 10,
+    position: "relative",
+  },
+  label: {
+    backgroundColor: "#181818",
+    color: "#a1a1a1",
+    fontSize: 14,
+    fontFamily: "Outfit-Regular",
+    position: "absolute",
+    paddingLeft: 5,
+    paddingRight: 5,
+    top: -10,
+    left: 15,
+  },
+  iconWrapper: {
+    position: "absolute",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    left: 18,
+  },
+  iconRightWrapper: {
+    position: "absolute",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    right: 18,
+    zIndex: 99,
+  },
+  inputElement: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "transparent",
+    color: "#f8f8f8",
+    fontSize: 18,
+    fontFamily: "Outfit-Regular",
+    borderRadius: 10,
+  },
+  errorLabel: {
+    color: "#a6352d",
+    fontSize: 14,
+    fontFamily: "Outfit-Regular",
+    marginTop: 8,
+    left: 10,
+  },
+});
