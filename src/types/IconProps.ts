@@ -1,6 +1,7 @@
 type IconProps = {
-  size: number;
   color: string;
-}
+  width: number;
+  style?: any;
+};
 
 export default IconProps;
