@@ -1,6 +1,10 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  touchableWrapper: {
+    borderRadius: 20,
+    overflow: "hidden",
+  },
   touchableOverlay: {
     borderRadius: 10,
   },
