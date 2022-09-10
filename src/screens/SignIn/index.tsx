@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { View, Text, Button, Image, Keyboard, TouchableWithoutFeedback, TextInput } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import CheckBox from "@react-native-community/checkbox";
@@ -9,14 +9,18 @@ import MessageIcon from "../../components/atoms/MessageIcon";
 import EyeIcon from "../../components/atoms/EyeIcon";
 import EyeSlashIcon from "../../components/atoms/EyeSlashIcon";
 import { CustomButton } from "../../components/molecules/CustomButton";
+import { setTokensToEncryptedStorage } from "../../utils/setTokensToEncryptedStorage";
+import UserContext from "../../contexts/UserContext";
 
 const welcomeImage = require("../../../assets/images/pouring-beer-bar.png");
 
-export default function SignInScreen() {
+export default function SignInScreen({ navigation }: any) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [rememberMeSelected, setRememberMeSelected] = useState(false);
   
+  const { user, flushUser } = useContext(UserContext);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -49,17 +53,27 @@ export default function SignInScreen() {
           include_token: true,
         }),
       });
-  
-      const text = await response.text();
 
-      console.log('Response: ', text);
-
-      // const json = await response.json();
-      // alert(JSON.stringify(json, null, 2));
+      const json = await response.json();
+      console.log({ status: response.status, ...json });
       
       if(response.status === 200) {
-        console.log("OK!");
-      }  
+        await setTokensToEncryptedStorage({
+          accessToken: json.accessToken,
+        });
+
+        await flushUser();
+
+        setIsLoading(false);
+
+        navigation.navigate("Map");
+      } else if(response.status === 400) {
+        setSignInError(json.message);
+      } else if(response.status === 401) {
+        setSignInError("Invalid email or password");
+      } else {
+        setSignInError("Something went wrong");
+      }
     } catch(e: any) {
       setSignInError(e.message || "Something went wrong");
       console.log("Error: ", e);
@@ -67,6 +81,12 @@ export default function SignInScreen() {
     
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    if(user) {
+      navigation.navigate("LocalAuth");
+    }
+  }, [user]);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
