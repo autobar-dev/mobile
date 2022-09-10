@@ -84,7 +84,11 @@ export default function SignInScreen({ navigation }: any) {
 
   useEffect(() => {
     if(user) {
+      console.log("User signed in. Navigating to LocalAuth...");
+
       navigation.navigate("LocalAuth");
+    } else {
+      console.log("User not signed in. Staying in SignIn...");
     }
   }, [user]);
 
