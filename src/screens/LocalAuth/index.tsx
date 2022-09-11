@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Text, View } from "react-native";
 import { getTokensFromEncryptedStorage } from "../../utils/getTokensFromEncryptedStorage";
 import signOut from "../../utils/signOut";
@@ -11,7 +11,7 @@ export default function LocalAuthScreen({ navigation }: any) {
   }, []);
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <Button
         onPress={() => {
           signOut()

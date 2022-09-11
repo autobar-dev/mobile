@@ -1,45 +1,36 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Button, View, Text, ActivityIndicator } from "react-native";
+import React, { createRef, useContext, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
 import Header from "../../components/organisms/Header";
-import UserContext from "../../contexts/UserContext";
-import { getTokensFromEncryptedStorage } from "../../utils/getTokensFromEncryptedStorage";
-import signOut from "../../utils/signOut";
-import MapView, { Marker, Region } from "react-native-maps";
+import MapView, { MapMarker, Marker, MarkerPressEvent, Region } from "react-native-maps";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import Station from "../../types/Station";
 import { sendGraphQL } from "../../utils/sendGraphQL";
 import StationsQuery from "../../graphql/StationsQuery";
 import stationQueryToStationObject from "../../utils/mappers/stationQueryToStationObject";
-import Geolocation from "react-native-geolocation-service";
+import Carousel from "react-native-snap-carousel";
+import MapStationCarouselTile, { ITEM_WIDTH, SLIDER_WIDTH } from "../../components/molecules/MapStationCarouselTile";
 
 import { styles } from "./styles";
 import mapStyle from "./mapStyle.json";
 
+type StationOnMapType = Station;
+
 export default function MapScreen({ navigation }: any) {
-  const [stations, setStations] = useState<Station[]>([]);
+  const [stations, setStations] = useState<StationOnMapType[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState(false);
+
+  const mapViewRef = useRef<MapView>(null);
+  const carouselRef = useRef<Carousel<any>>(null);
 
   const initialRegion = useMemo<Region>(() => ({
     latitude: 50.276697,
     longitude: 18.975806,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
+    latitudeDelta: 0.03,
+    longitudeDelta: 0.03,
   }), []);
-  // const [region, setRegion] = useState<Region>(initialRegion);
 
   useEffect(() => {
     const permission = PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION;
-
-    // const setRegionOnLoad = () => {
-    //   Geolocation.getCurrentPosition((location) => {
-    //     setRegion({
-    //       latitude: location.coords.latitude,
-    //       longitude: location.coords.longitude,
-    //       latitudeDelta: 0.0922,
-    //       longitudeDelta: 0.0421,
-    //     });
-    //   });
-    // };
 
     const requestPermission = () => {
       request(permission)
@@ -63,11 +54,9 @@ export default function MapScreen({ navigation }: any) {
             break;
           case RESULTS.LIMITED:
             console.log('The permission is limited: some actions are possible');
-            // setRegionOnLoad();
             break;
           case RESULTS.GRANTED:
             console.log('The permission is granted');
-            // setRegionOnLoad();
             break;
           case RESULTS.BLOCKED:
             console.log('The permission is denied and not requestable anymore');
@@ -77,6 +66,8 @@ export default function MapScreen({ navigation }: any) {
       .catch((e: any) => {
         console.log("Location permissions error:", e);
       });
+
+      onRegionChangeCompleteHandler(initialRegion, {});
   }, []);
 
   const onRegionChangeCompleteHandler = (region: Region, details: any) => {
@@ -88,8 +79,14 @@ export default function MapScreen({ navigation }: any) {
 
     sendGraphQL(stationsQuery)
       .then((data: any) => {
-        const { stations } = data;
-        const mappedStations = stations.map(stationQueryToStationObject);
+        const { stations: stationsData } = data;
+        const mappedStations: StationOnMapType[] = stationsData.map((station: any) => {
+          return {
+            ...stationQueryToStationObject(station),
+          };
+        });
+
+        console.log(`Loaded ${mappedStations.length} stations`);
 
         setStations(mappedStations);
         setIsStationsLoading(false);
@@ -97,6 +94,42 @@ export default function MapScreen({ navigation }: any) {
       .catch((e: any) => {
         console.log("Stations query error:", e);
       });
+  };
+
+  const handleMarkerPress = ({ station, index }: { station: StationOnMapType, index: number }, event: MarkerPressEvent) => {
+    console.log(`Moving carousel to ${index} - ${station.name}`);
+    carouselRef.current?.snapToItem(index, true, false);
+  };
+
+  const moveMapToStationIndex = async (index: number) => {
+    const mapViewBoundaries = await mapViewRef.current?.getMapBoundaries();
+    
+    const latitudeDelta = Math.abs(mapViewBoundaries!.northEast.latitude - mapViewBoundaries!.southWest.latitude);
+    const longitudeDelta = Math.abs(mapViewBoundaries!.northEast.longitude - mapViewBoundaries!.southWest.longitude);
+
+    const delta: { latitudeDelta: number, longitudeDelta: number } = {
+      latitudeDelta,
+      longitudeDelta
+    };
+
+    mapViewRef.current?.animateToRegion({
+      latitude: stations[index].location.latitude,
+      longitude: stations[index].location.longitude,
+      ...delta,
+    });
+
+    console.log(`Moved map to station ${stations[index].name}`);
+  };
+
+  const handleCarouselCardChange = (index: number) => {
+    console.log(`Carousel card changed to ${index}`);
+    moveMapToStationIndex(index);
+  };
+
+  const handleCarouselCardPress = (index: number) => {
+    console.log(`Carousel card ${index} pressed`);
+    carouselRef.current?.snapToItem(index, true, false);
+    moveMapToStationIndex(index);
   };
 
   return (
@@ -116,36 +149,57 @@ export default function MapScreen({ navigation }: any) {
         style={styles.map}
         provider="google"
         mapType="standard"
+        ref={mapViewRef}
         loadingEnabled
         loadingBackgroundColor="#181818"
         loadingIndicatorColor="#e3b04b"
         customMapStyle={mapStyle}
         mapPadding={{
           top: 100,
-          bottom: 0,
+          bottom: 170,
           left: 0,
           right: 0,
         }}
+        maxZoomLevel={16}
+        minZoomLevel={12}
         userInterfaceStyle="dark"
         onRegionChangeComplete={onRegionChangeCompleteHandler}
-        // region={region}
-        // onRegionChange={setRegion}
+        initialRegion={initialRegion}
         showsUserLocation
         showsMyLocationButton
       >
         {
-          stations.map((station, index) => (
-            <Marker
-              key={index}
-              coordinate={station.location}
-              title={station.name}
-              description={station.description}
-              pinColor="#e3b04b"
-              flat={true}
-            />
-          ))
+          stations.map((station, index) => {
+            return (
+              <Marker
+                key={index}
+                coordinate={station.location}
+                pinColor={"#e3b04b"}
+                onPress={(event) => handleMarkerPress({ station, index }, event)}
+              />
+            );
+          })
         }
       </MapView>
+
+      <Carousel
+        ref={carouselRef}
+        layout="default"
+        containerCustomStyle={styles.carousel}
+        data={stations}
+        renderItem={({ index, dataIndex, item }, parallaxData) => (
+          <MapStationCarouselTile
+            key={index}
+            name={item.name}
+            onPress={() => handleCarouselCardPress(index)}
+          />
+        )}
+        sliderWidth={SLIDER_WIDTH}
+        itemWidth={ITEM_WIDTH}
+        useScrollView={true}
+        vertical={false}
+        onSnapToItem={(index) => handleCarouselCardChange(index)}
+      />
     </View>
   );
 }
