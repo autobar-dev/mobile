@@ -6,7 +6,7 @@ export async function sendGraphQL(query: DocumentNode, url?: string): Promise<an
   let gqlUrl = url || `${getServiceUri()}/graphql`;
   const { accessToken, refreshToken } = await getTokensFromEncryptedStorage();
 
-  console.log("Sending GQL, tokens: ", { accessToken, refreshToken });
+  // console.log("Sending GQL, tokens: ", { accessToken, refreshToken });
 
   if(query && query.loc) {
     const body = query.loc?.source.body;

@@ -9,16 +9,19 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#181818',
   },
-  screenLabel: {
-    marginTop: 100,
-    fontSize: 24,
-    fontFamily: "Outfit-SemiBold",
-    color: "#f8f8f8",
+  stationsLoadingIndicator: {
+    position: "absolute",
+    right: 20,
+    top: 65,
+    zIndex: 99,
   },
-  textMonospace: {
-    marginTop: 20,
-    fontSize: 16,
-    fontFamily: "monospace",
-    color: "#f8f8f8",
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  carousel: {
+    zIndex: 99,
+    position: "absolute",
+    bottom: 30,
   },
 });
