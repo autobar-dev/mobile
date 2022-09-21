@@ -8,6 +8,7 @@ import flushUserHelper from "./src/utils/flushUser";
 import MapScreen from "./src/screens/MapScreen";
 import UserContext from "./src/contexts/UserContext";
 import LocalAuthScreen from "./src/screens/LocalAuth";
+import MenuModal from "./src/components/organisms/MenuModal";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,9 +34,21 @@ export default function App() {
           }}
           initialRouteName={initialRoute}
         >
-          <Stack.Screen name="SignIn" component={SignInScreen} />
-          <Stack.Screen name="LocalAuth" component={LocalAuthScreen} />
-          <Stack.Screen name="Map" component={MapScreen} />
+          <Stack.Group>
+            <Stack.Screen name="SignIn" component={SignInScreen} />
+            <Stack.Screen name="LocalAuth" component={LocalAuthScreen} />
+            <Stack.Screen name="Map" component={MapScreen} />
+          </Stack.Group>
+          <Stack.Group>
+            <Stack.Screen
+              name="MenuModal"
+              component={MenuModal}
+              options={{
+                presentation: "transparentModal",
+                animation: "fade",
+              }}
+            />
+          </Stack.Group>
         </Stack.Navigator>
       </NavigationContainer>
     </UserContext.Provider>
