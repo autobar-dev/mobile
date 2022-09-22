@@ -4,8 +4,12 @@ import UserContext from "../../../contexts/UserContext";
 import ArrowRightIcon from "../../atoms/ArrowRightIcon";
 import CloseCircleIcon from "../../atoms/CloseCircleIcon";
 import MessageIcon from "../../atoms/MessageIcon";
+import SettingsIcon from "../../atoms/SettingsIcon";
+import SignOutIcon from "../../atoms/SignOutIcon";
+import UserIcon from "../../atoms/UserIcon";
 import MenuItem, { MenuItemProps } from "../../molecules/MenuItem";
 import UserAvatar from "../../molecules/UserAvatar";
+import signOut from "../../../utils/signOut";
 
 import { styles } from "./styles";
 
@@ -14,6 +18,7 @@ export default function MenuModal({ navigation }: any) {
 
   const closeMenu = () => navigation.goBack();
   const navigateTo = (screenName: string) => {
+    console.log(`navigateTo - ${screenName}`);
     closeMenu();
     navigation.navigate(screenName);
   };
@@ -23,11 +28,12 @@ export default function MenuModal({ navigation }: any) {
       label: "Profile",
       color: "#f8f8f8",
       icon: (
-        <MessageIcon
+        <UserIcon
           color="#f8f8f8"
           width={22}
         />
       ),
+      onPress: () => navigateTo("LocalAuth"),
       rightElement: (
         <ArrowRightIcon
           color="#f8f8f8"
@@ -39,7 +45,7 @@ export default function MenuModal({ navigation }: any) {
       label: "Settings",
       color: "#f8f8f8",
       icon: (
-        <MessageIcon
+        <SettingsIcon
           color="#f8f8f8"
           width={22}
         />
@@ -50,17 +56,23 @@ export default function MenuModal({ navigation }: any) {
           width={9}
         />
       ),
+      onPress: () => navigateTo("LocalAuth"),
     },
     {
       label: "Sign Out",
       color: "#ef5050",
       icon: (
-        <MessageIcon
+        <SignOutIcon
           color="#ef5050"
-          width={22}
+          width={20}
+          style={{ marginRight: 2 }}
         />
       ),
       dividerAbove: true,
+      onPress: async () => {
+        await signOut();
+        navigateTo("SignIn");
+      },
     },
   ], []);
 
@@ -89,6 +101,8 @@ export default function MenuModal({ navigation }: any) {
                 icon={item.icon}
                 rightElement={item.rightElement}
                 dividerAbove={item.dividerAbove}
+                onPress={item.onPress}
+                style={item.style}
               />
             )) }
           </View>

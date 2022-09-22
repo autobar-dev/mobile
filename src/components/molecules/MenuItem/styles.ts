@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 26,
+    paddingHorizontal: 24,
     height: "100%",
   },
   iconAndLabel: {
@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
   },
   icon: {
-    marginRight: 16,
+    marginRight: 18,
   },
   label: {
     fontFamily: "Outfit-Regular",

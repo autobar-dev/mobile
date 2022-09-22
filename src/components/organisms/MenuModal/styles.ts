@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 199,
-    backgroundColor: "#181818ee"
+    backgroundColor: "#181818f4"
   },
   profileInfo: {
     marginBottom: 30,
