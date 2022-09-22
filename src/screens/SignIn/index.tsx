@@ -86,6 +86,10 @@ export default function SignInScreen({ navigation }: any) {
     if(user) {
       console.log("User signed in. Navigating to LocalAuth...");
 
+      setEmail("");
+      setPassword("");
+      setIsPasswordVisible(false);
+
       navigation.navigate("LocalAuth");
     } else {
       console.log("User not signed in. Staying in SignIn...");

@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
   },
   errorLabel: {
-    color: "#a6352d",
+    color: "#ef5050",
     fontSize: 14,
     fontFamily: "Outfit-Regular",
     marginTop: 8,

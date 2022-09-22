@@ -8,17 +8,17 @@ type User = {
   name: string;
   surname: string;
   birthdate: Date;
-  phone_number: string;
+  phoneNumber: string;
 
   balance: number;
-  balance_currency: Currency;
+  balanceCurrency: Currency;
 
-  verified_at: Date | null;
-  created_at: Date;
+  verifiedAt: Date | null;
+  createdAt: Date;
 
   transactions: any[];
   purchases: any[];
-  active_sessions: any[]
+  activeSessions: any[]
 };
 
 export default User;

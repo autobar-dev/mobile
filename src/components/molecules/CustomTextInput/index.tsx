@@ -36,7 +36,7 @@ export function CustomTextInput(props: CustomTextInputProps) {
         style={[
           styles.inputWrapper,
           props.style,
-          props.error && { borderColor: "#a6352d" },
+          props.error && { borderColor: "#ef5050" },
         ]}
       >
         {

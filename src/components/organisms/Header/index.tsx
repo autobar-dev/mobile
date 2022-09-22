@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import { Text, TouchableWithoutFeedback, View } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
@@ -8,6 +9,8 @@ import Logo from "../../molecules/Logo";
 import { styles } from "./styles";
 
 export default function Header() {
+  const navigation: any = useNavigation();
+
   return (
     <View style={styles.root}>
       <LinearGradient
@@ -18,7 +21,10 @@ export default function Header() {
 
       <View style={styles.itemsWrapper}>
         <BurgerButton
-          onPress={() => console.log("Open menu")}
+          onPress={() => {
+            console.log("Open menu");
+            navigation.navigate("MenuModal");
+          }}
         />
 
         <Logo
