@@ -9,6 +9,7 @@ type User = {
   surname: string;
   birthdate: Date;
   phoneNumber: string;
+  profilePicture: string;
 
   balance: number;
   balanceCurrency: Currency;

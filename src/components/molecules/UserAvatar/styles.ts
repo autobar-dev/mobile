@@ -16,4 +16,8 @@ export const styles = StyleSheet.create({
     fontSize: 32,
     fontFamily: "Outfit-SemiBold",
   },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
 });
