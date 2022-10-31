@@ -9,6 +9,7 @@ import MapScreen from "./src/screens/MapScreen";
 import UserContext from "./src/contexts/UserContext";
 import LocalAuthScreen from "./src/screens/LocalAuth";
 import MenuModal from "./src/components/organisms/MenuModal";
+import BarcodeScannerModal from "./src/components/organisms/BarcodeScannerModal";
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,14 @@ export default function App() {
             <Stack.Screen
               name="MenuModal"
               component={MenuModal}
+              options={{
+                presentation: "transparentModal",
+                animation: "fade",
+              }}
+            />
+            <Stack.Screen
+              name="BarcodeScannerModal"
+              component={BarcodeScannerModal}
               options={{
                 presentation: "transparentModal",
                 animation: "fade",
