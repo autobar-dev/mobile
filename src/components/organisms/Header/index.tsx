@@ -35,7 +35,10 @@ export default function Header() {
         />
 
         <TouchableWithoutFeedback
-          onPress={() => console.log("Open scan barcode overlay")}
+          onPress={() => {
+            console.log("Open barcode modal");
+            navigation.navigate("BarcodeScannerModal");
+          }}
         >
           <View style={styles.scanBarcodeWrapper}>
             <ScanBarcodeIcon

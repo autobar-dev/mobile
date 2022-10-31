@@ -11,6 +11,7 @@ import EyeSlashIcon from "../../components/atoms/EyeSlashIcon";
 import { CustomButton } from "../../components/molecules/CustomButton";
 import { setTokensToEncryptedStorage } from "../../utils/setTokensToEncryptedStorage";
 import UserContext from "../../contexts/UserContext";
+import { getServiceUri } from "../../utils/getServiceUri";
 
 const welcomeImage = require("../../../assets/images/pouring-beer-bar.png");
 
@@ -36,7 +37,7 @@ export default function SignInScreen({ navigation }: any) {
     setSignInError("");
     setIsLoading(true);
 
-    const url = `https://api.autobar.ovh/auth/signin`;
+    const url = `${getServiceUri()}/auth/signin`;
 
     console.log(`Making POST request to ${url}: `, { email, password, });
 
@@ -46,6 +47,7 @@ export default function SignInScreen({ navigation }: any) {
         headers: {
           "Content-Type": "application/json",
         },
+        mode: "cors",
         credentials: "include",
         body: JSON.stringify({
           email,
@@ -55,14 +57,19 @@ export default function SignInScreen({ navigation }: any) {
       });
 
       const json = await response.json();
-      console.log({ status: response.status, ...json });
+      console.log("signIn response", { status: response.status, ...json });
       
       if(response.status === 200) {
         await setTokensToEncryptedStorage({
           accessToken: json.accessToken,
         });
 
-        await flushUser();
+        try {
+          await flushUser();
+        } catch(e: any) {
+          console.log("Error while flushing user", e);
+          setSignInError(e.toString() || "Something went wrong");
+        }
 
         setIsLoading(false);
 
