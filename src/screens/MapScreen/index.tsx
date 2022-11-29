@@ -1,5 +1,5 @@
 import React, { createRef, useContext, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, useWindowDimensions } from "react-native";
 import Header from "../../components/organisms/Header";
 import MapView, { MapMarker, Marker, MarkerPressEvent, Region } from "react-native-maps";
 import { check, request, PERMISSIONS, RESULTS } from "react-native-permissions";
@@ -12,10 +12,52 @@ import MapStationCarouselTile, { ITEM_WIDTH, SLIDER_WIDTH } from "../../componen
 
 import { styles } from "./styles";
 import mapStyle from "./mapStyle.json";
+import { PointOnScreen } from "../../types/PointOnScreen";
 
 type StationOnMapType = Station;
 
 export default function MapScreen({ navigation }: any) {
+  const {
+    width: screenWidth,
+    height: screenHeight,
+  } = useWindowDimensions();
+
+  const [swipeStart, setSwipeStart] = useState<PointOnScreen>({ x: -1, y: -1 });
+  const [swipeEnd, setSwipeEnd] = useState<PointOnScreen>({ x: -1, y: -1 });
+
+  useEffect(() => {
+    if(
+      swipeStart.x !== -1 && swipeStart.y !== -1 &&
+      swipeEnd.x !== -1 && swipeEnd.y !== -1
+    ) {
+      const deltaX = Math.abs(swipeEnd.x - swipeStart.x);
+      const deltaY = Math.abs(swipeEnd.y - swipeStart.y);
+
+      const percX = deltaX / screenWidth;
+      const percY = deltaY / screenHeight;
+
+      // console.log(`Swipe start: ${JSON.stringify(swipeStart)} | Swipe end: ${JSON.stringify(swipeEnd)}`);
+      // console.log(`Delta X: ${deltaX} | Delta Y: ${deltaY}`);
+      // console.log(`Perc X: ${deltaX / screenWidth * 100} | Perc Y: ${deltaY / screenHeight * 100}`);
+
+      if(
+        percY < 0.04 &&
+        percX > 0.35
+      ) {
+        if(swipeStart.x < 20) {
+          // console.log("Open menu");
+          navigation.navigate("MenuModal");
+        } else if(screenWidth - swipeStart.x < 20) {
+          // console.log("Open barcode scanner");
+          navigation.navigate("BarcodeScannerModal");
+        }
+      }
+
+      setSwipeStart({ x: -1, y: -1 });
+      setSwipeEnd({ x: -1, y: -1 });
+    }
+  }, [swipeEnd]);
+
   const [stations, setStations] = useState<StationOnMapType[]>([]);
   const [isStationsLoading, setIsStationsLoading] = useState(false);
 
@@ -133,7 +175,25 @@ export default function MapScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.root}>
+    <View
+      style={styles.root}
+      onTouchStart={(e) => {
+        const {
+          pageX: x,
+          pageY: y,
+        } = e.nativeEvent;
+
+        setSwipeStart({ x, y });
+      }}
+      onTouchEnd={(e) => {
+        const {
+          pageX: x,
+          pageY: y,
+        } = e.nativeEvent;
+
+        setSwipeEnd({ x, y });
+      }}
+    >
       <Header />
       
       {
