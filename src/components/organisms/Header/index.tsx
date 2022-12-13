@@ -1,7 +1,9 @@
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
+import React, { useContext } from "react";
 import { Text, TouchableWithoutFeedback, View } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
+import PouringContext from "../../../contexts/PouringContext";
+import BeerIcon from "../../atoms/BeerIcon";
 import ScanBarcodeIcon from "../../atoms/ScanBarcodeIcon";
 import BurgerButton from "../../molecules/BurgerButton";
 import Logo from "../../molecules/Logo";
@@ -10,6 +12,7 @@ import { styles } from "./styles";
 
 export default function Header() {
   const navigation: any = useNavigation();
+  const { pouringSerialNumber } = useContext(PouringContext);
 
   return (
     <View style={styles.root}>
@@ -36,15 +39,30 @@ export default function Header() {
 
         <TouchableWithoutFeedback
           onPress={() => {
-            console.log("Open barcode modal");
-            navigation.navigate("BarcodeScannerModal");
+            if(pouringSerialNumber) {
+              console.log("Open pouring modal");
+              navigation.navigate("PouringModal");
+            } else {
+              console.log("Open barcode modal");
+              navigation.navigate("BarcodeScannerModal");
+            }
           }}
         >
           <View style={styles.scanBarcodeWrapper}>
-            <ScanBarcodeIcon
-              color="#f8f8f8"
-              width={20}
-            />
+            { pouringSerialNumber ? (
+              <BeerIcon
+                color="#f8f8f8"
+                width={16}
+                style={{
+                  marginTop: -2
+                }}
+              />
+            ) : (
+              <ScanBarcodeIcon
+                color="#f8f8f8"
+                width={20}
+              />
+            ) }
           </View>
         </TouchableWithoutFeedback>
       </View>

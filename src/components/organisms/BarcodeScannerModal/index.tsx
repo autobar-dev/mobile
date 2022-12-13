@@ -1,17 +1,20 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View, Alert } from "react-native";
-import UserContext from "../../../contexts/UserContext";
-import CloseCircleIcon from "../../atoms/CloseCircleIcon";
 import { Camera, CameraType } from "react-native-camera-kit";
+import { check, PERMISSIONS, request, RESULTS } from "react-native-permissions";
 
 import { styles } from "./styles";
-import { check, PERMISSIONS, request, RESULTS } from "react-native-permissions";
+import UserContext from "../../../contexts/UserContext";
+import CloseCircleIcon from "../../atoms/CloseCircleIcon";
 import { getServiceUri } from "../../../utils/getServiceUri";
 import { getTokensFromEncryptedStorage } from "../../../utils/getTokensFromEncryptedStorage";
+import PouringContext from "../../../contexts/PouringContext";
 
 const barcodeRegex = /^(?:https:\/\/)?(?:a5r.ovh\/m\/)([0-9A-Z]{16})\/([0-9A-Z]{6})/g;
 
 export default function BarcodeScannerModal({ navigation }: any) {
+  const { setPouringSerialNumber } = useContext(PouringContext);
+
   const cameraRef = useRef<Camera>(null);
   const [foundBarcode, setFoundBarcode] = useState(false);
 
@@ -42,47 +45,36 @@ export default function BarcodeScannerModal({ navigation }: any) {
 
               console.log(`Starting ${serialNumber} - ${otk}`);
 
-              const response = await fetch(`${getServiceUri()}/modules/${serialNumber}/start?otk=${otk}`, {
-                method: "POST",
-                mode: 'cors',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  access_token: accessToken,
-                }),
-              });
+              try {
+                const response = await fetch(`${getServiceUri()}/modules/${serialNumber}/start?otk=${otk}`, {
+                  method: "POST",
+                  mode: 'cors',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    access_token: accessToken,
+                  }),
+                });
+  
+                const responseJson = await response.json();
+                console.log("Start response", responseJson);
+  
+                if(response.status == 200) {
+                  console.log("Start successful");
 
-              const responseJson = await response.json();
-              console.log("Start response", responseJson);
+                  setPouringSerialNumber(serialNumber);
+  
+                  navigation.navigate("PouringModal");
+                } else {
+                  console.log("Start unsuccessful");
 
-              if(response.status == 200) {
-                Alert.alert(
-                  "Cancel pouring",
-                  "Send a cancel request to the module?",
-                  [
-                    {
-                      text: "Cancel",
-                      onPress: async () => {
-                        const response = await fetch(`${getServiceUri()}/modules/${serialNumber}/cancel`, {
-                          method: "POST",
-                          mode: 'cors',
-                          headers: {
-                            'Content-Type': 'application/json'
-                          },
-                          body: JSON.stringify({
-                            access_token: accessToken,
-                          }),
-                        });
-          
-                        const responseJson = await response.json();
-                        console.log("Cancel response", responseJson);
-                      },
-                    },
-                  ],
-                );
+                  throw new Error(`HTTP error: ${response.status} ${JSON.stringify(responseJson)}`);
+                }
+              } catch (e: any) {
+                Alert.alert("There has been an error while requesting pouring start:", e.message);
               }
-
+              
               resolve(true);
             },
           },

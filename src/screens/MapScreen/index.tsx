@@ -13,10 +13,13 @@ import MapStationCarouselTile, { ITEM_WIDTH, SLIDER_WIDTH } from "../../componen
 import { styles } from "./styles";
 import mapStyle from "./mapStyle.json";
 import { PointOnScreen } from "../../types/PointOnScreen";
+import PouringContext from "../../contexts/PouringContext";
 
 type StationOnMapType = Station;
 
 export default function MapScreen({ navigation }: any) {
+  const { pouringSerialNumber } = useContext(PouringContext);
+
   const {
     width: screenWidth,
     height: screenHeight,
@@ -42,14 +45,19 @@ export default function MapScreen({ navigation }: any) {
 
       if(
         percY < 0.04 &&
-        percX > 0.35
+        percX > 0.3
       ) {
         if(swipeStart.x < 20) {
-          // console.log("Open menu");
+          console.log("Open MenuModal");
           navigation.navigate("MenuModal");
         } else if(screenWidth - swipeStart.x < 20) {
-          // console.log("Open barcode scanner");
-          navigation.navigate("BarcodeScannerModal");
+          if(pouringSerialNumber) {
+            console.log("Open PouringModal");
+            navigation.navigate("PouringModal");
+          } else {
+            console.log("Open BarcodeScannerModal");
+            navigation.navigate("BarcodeScannerModal");
+          }
         }
       }
 
