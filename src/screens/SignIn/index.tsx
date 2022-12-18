@@ -12,6 +12,7 @@ import { CustomButton } from "../../components/molecules/CustomButton";
 import { setTokensToEncryptedStorage } from "../../utils/setTokensToEncryptedStorage";
 import UserContext from "../../contexts/UserContext";
 import { getServiceUri } from "../../utils/getServiceUri";
+import NowPouringContext from "../../contexts/NowPouringContext";
 
 const welcomeImage = require("../../../assets/images/pouring-beer-bar.png");
 
@@ -21,6 +22,7 @@ export default function SignInScreen({ navigation }: any) {
   const [rememberMeSelected, setRememberMeSelected] = useState(false);
   
   const { user, flushUser } = useContext(UserContext);
+  const { flushNowPouring } = useContext(NowPouringContext);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,8 +68,9 @@ export default function SignInScreen({ navigation }: any) {
 
         try {
           await flushUser();
+          await flushNowPouring();
         } catch(e: any) {
-          console.log("Error while flushing user", e);
+          console.log("Error while initial flushing", e);
           setSignInError(e.toString() || "Something went wrong");
         }
 

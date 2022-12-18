@@ -11,28 +11,50 @@ import LocalAuthScreen from "./src/screens/LocalAuth";
 import MenuModal from "./src/components/organisms/MenuModal";
 import BarcodeScannerModal from "./src/components/organisms/BarcodeScannerModal";
 import PouringModal from "./src/components/organisms/PouringModal";
-import PouringContext from "./src/contexts/PouringContext";
+import NowPouringContext from "./src/contexts/NowPouringContext";
+import flushUserAfterPouringHelper from "./src/utils/flushUserAfterPouring";
+import PouringInfo from "./src/types/PouringInfo";
+import flushNowPouringHelper from "./src/utils/flushNowPouring";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [user, setUser] = useState<User | undefined>(undefined);
   const [isUserLoading, setIsUserLoading] = useState(true);
-  const flushUser = () => flushUserHelper(user, setUser);
 
-  const [pouringSerialNumber, setPouringSerialNumber] = useState<string | undefined>(undefined);
+  const [nowPouring, setNowPouring] = useState<PouringInfo | null | undefined>(undefined);
+  const [isNowPouringLoading, setIsNowPouringLoading] = useState(true);
+
+  const flushUser = () => flushUserHelper(
+    { user, setUser }
+  );
+  const flushNowPouring = () => flushNowPouringHelper(
+    { nowPouring, setNowPouring }
+  );
+  const flushUserAfterPouring = () => flushUserAfterPouringHelper(
+    { user, setUser },
+    { nowPouring, setNowPouring }
+  );
 
   const [initialRoute, setInitialRoute] = useState("SignIn");
 
   useEffect(() => {
-    flushUser().then(() => {
+    const initialFlushesArray: Promise<void>[] = [
+      flushUser(),
+      flushNowPouring(),
+    ];
+
+    Promise.all(initialFlushesArray).then(() => {
+      console.log("All initial flushes completed.");
+
       setIsUserLoading(false);
-    })
+      setIsNowPouringLoading(false);
+    });
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, setUser, flushUser, }}>
-      <PouringContext.Provider value={{ pouringSerialNumber, setPouringSerialNumber }}>
+    <UserContext.Provider value={{ user, setUser, flushUser, flushUserAfterPouring }}>
+      <NowPouringContext.Provider value={{ nowPouring, setNowPouring, flushNowPouring, isNowPouringLoading, setIsNowPouringLoading }}>
         <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
@@ -73,7 +95,7 @@ export default function App() {
             </Stack.Group>
           </Stack.Navigator>
         </NavigationContainer>
-      </PouringContext.Provider>
+      </NowPouringContext.Provider>
     </UserContext.Provider>
   );
 };

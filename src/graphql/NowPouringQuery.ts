@@ -4,21 +4,29 @@ export default () => gql`
   query {
     nowPouring {
       module {
+        id
         serialNumber
         prices
+        unit
+        currencyDisplayed
+        createdAt
 
         product {
+          id
           name
           description
           image
+          type
           additionalData
+          createdAt
         }
       }
 
-      price {
+      priceInfo {
         priceBeforePromos
         price
         currency
+
         promos {
           value
           percentage

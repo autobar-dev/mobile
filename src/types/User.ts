@@ -1,5 +1,3 @@
-import Currency from "./Currency";
-
 type User = {
   id: number;
 
@@ -12,14 +10,14 @@ type User = {
   profilePicture: string;
 
   balance: number;
-  balanceCurrency: Currency;
+  balanceCurrency: string;
 
   verifiedAt: Date | null;
   createdAt: Date;
 
   transactions: any[];
   purchases: any[];
-  activeSessions: any[]
+  activeSessions: any[];
 };
 
 export default User;

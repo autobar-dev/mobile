@@ -13,15 +13,28 @@ import signOut from "../../../utils/signOut";
 
 import { styles } from "./styles";
 import { getServiceUri } from "../../../utils/getServiceUri";
-import PouringContext from "../../../contexts/PouringContext";
+import PouringContext from "../../../contexts/NowPouringContext";
 import { CustomButton } from "../../molecules/CustomButton";
 import { sendGraphQL } from "../../../utils/sendGraphQL";
 import gql from "graphql-tag";
+import NowPouringContext from "../../../contexts/NowPouringContext";
+import flushUserAfterPouring from "../../../utils/flushUserAfterPouring";
 
 export default function PouringModal({ navigation }: any) {
-  const { user } = useContext(UserContext);
-  const { pouringSerialNumber, setPouringSerialNumber } = useContext(PouringContext);
+  const { user, flushUser, flushUserAfterPouring } = useContext(UserContext);
+  const { nowPouring, setIsNowPouringLoading } = useContext(NowPouringContext);
   
+  const { product } = nowPouring?.module!;
+  const [additionalData, setAdditionalData] = useState<{ [key: string]: any }>({});
+
+  useEffect(() => {
+    if(product.additionalData) {
+      setAdditionalData(
+        JSON.parse(product.additionalData)
+      );
+    }
+  }, [product]);
+
   const [isCancellationLoading, setIsCancellationLoading] = useState(false);
 
   const closeMenu = () => navigation.goBack();
@@ -36,7 +49,7 @@ export default function PouringModal({ navigation }: any) {
     setIsCancellationLoading(true);
 
     try {
-      const response = await fetch(`${getServiceUri()}/modules/${pouringSerialNumber}/cancel`, {
+      const response = await fetch(`${getServiceUri()}/modules/${nowPouring?.module.serialNumber}/cancel`, {
         method: "POST",
       });
       const responseJson = await response.json();
@@ -48,8 +61,12 @@ export default function PouringModal({ navigation }: any) {
       console.log("Cancel response", responseJson);
       
       setIsCancellationLoading(false);
-      setPouringSerialNumber(undefined);
+
       closeMenu();
+      
+      setIsNowPouringLoading(true);
+      await flushUserAfterPouring();
+      setIsNowPouringLoading(false);
     } catch(e) {
       setIsCancellationLoading(false);
       Alert.alert(`Error cancelling pouring: ${JSON.stringify(e)}`);
@@ -57,35 +74,6 @@ export default function PouringModal({ navigation }: any) {
   };
 
   const [isImageLoading, setIsImageLoading] = useState(true);
-  const [pouringData, setPouringData] = useState<{
-    name: string;
-    description: string;
-    image: string;
-    additionalData: {
-      alcohol_by_volume: number;
-      extract: number;
-    };
-  }>();
-
-  useEffect(() => {
-    new Promise(async (res, rej) => {
-      const data = await sendGraphQL(gql`
-        query {
-          product(id: 1) {
-            image
-            name
-            description
-            additionalData
-          }
-        }
-      `);
-
-      data.product.additionalData = JSON.parse(data.product.additionalData);
-
-      console.log(data);
-      setPouringData(data.product);
-    });
-  }, []);
 
   return (
     <TouchableWithoutFeedback
@@ -96,7 +84,7 @@ export default function PouringModal({ navigation }: any) {
           <View
             style={styles.imageWrapper}
           >
-            { (isImageLoading || !pouringData?.image) && (
+            { (isImageLoading || !product.image) && (
               <ActivityIndicator
                 size={"large"}
                 color="#e3b04b"
@@ -105,9 +93,9 @@ export default function PouringModal({ navigation }: any) {
             <Image
               style={{
                 ...styles.beerImage,
-                display: (isImageLoading || !pouringData?.image) ? "none" : "flex",
+                display: (isImageLoading || !product.image) ? "none" : "flex",
               }}
-              source={{ uri: pouringData?.image }}
+              source={{ uri: product.image }}
               onLoad={() => setIsImageLoading(false)}
             />
           </View>
@@ -116,13 +104,13 @@ export default function PouringModal({ navigation }: any) {
           >
             <Text
               style={styles.beerName}
-            >{ pouringData?.name }</Text>
+            >{ product.name }</Text>
             <Text
               style={styles.beerDescription}
-            >{ pouringData?.description }</Text>
+            >{ product.description }</Text>
             
-            <Text>ABV: {pouringData?.additionalData.alcohol_by_volume}%</Text>
-            <Text>Extract: {pouringData?.additionalData.extract}%</Text>
+            <Text>ABV: {additionalData?.alcohol_by_volume}%</Text>
+            <Text>Extract: {additionalData?.extract}%</Text>
           </View>
           <CustomButton
             label="Cancel pouring"

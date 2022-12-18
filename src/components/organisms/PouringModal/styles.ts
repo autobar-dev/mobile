@@ -36,6 +36,7 @@ export const styles = StyleSheet.create({
     fontSize: 28,
     fontFamily: "Outfit-SemiBold",
     marginBottom: 10,
+    textAlign: "center",
   },
   beerDescription: {
     color: "#f3f3f3",

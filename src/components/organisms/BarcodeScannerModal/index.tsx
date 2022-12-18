@@ -8,12 +8,12 @@ import UserContext from "../../../contexts/UserContext";
 import CloseCircleIcon from "../../atoms/CloseCircleIcon";
 import { getServiceUri } from "../../../utils/getServiceUri";
 import { getTokensFromEncryptedStorage } from "../../../utils/getTokensFromEncryptedStorage";
-import PouringContext from "../../../contexts/PouringContext";
+import NowPouringContext from "../../../contexts/NowPouringContext";
 
 const barcodeRegex = /^(?:https:\/\/)?(?:a5r.ovh\/m\/)([0-9A-Z]{16})\/([0-9A-Z]{6})/g;
 
 export default function BarcodeScannerModal({ navigation }: any) {
-  const { setPouringSerialNumber } = useContext(PouringContext);
+  const { flushNowPouring, setIsNowPouringLoading } = useContext(NowPouringContext);
 
   const cameraRef = useRef<Camera>(null);
   const [foundBarcode, setFoundBarcode] = useState(false);
@@ -40,6 +40,8 @@ export default function BarcodeScannerModal({ navigation }: any) {
           {
             text: "OK",
             onPress: async () => {
+              setIsNowPouringLoading(true);
+
               const { serialNumber, otk } = payload;
               const { accessToken } = await getTokensFromEncryptedStorage();
 
@@ -63,9 +65,10 @@ export default function BarcodeScannerModal({ navigation }: any) {
                 if(response.status == 200) {
                   console.log("Start successful");
 
-                  setPouringSerialNumber(serialNumber);
-  
-                  navigation.navigate("PouringModal");
+                  flushNowPouring().then(() => {
+                    setIsNowPouringLoading(false);
+                    navigation.navigate("PouringModal");
+                  });
                 } else {
                   console.log("Start unsuccessful");
 

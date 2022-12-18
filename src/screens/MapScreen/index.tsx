@@ -13,12 +13,12 @@ import MapStationCarouselTile, { ITEM_WIDTH, SLIDER_WIDTH } from "../../componen
 import { styles } from "./styles";
 import mapStyle from "./mapStyle.json";
 import { PointOnScreen } from "../../types/PointOnScreen";
-import PouringContext from "../../contexts/PouringContext";
+import NowPouringContext from "../../contexts/NowPouringContext";
 
 type StationOnMapType = Station;
 
 export default function MapScreen({ navigation }: any) {
-  const { pouringSerialNumber } = useContext(PouringContext);
+  const { nowPouring } = useContext(NowPouringContext);
 
   const {
     width: screenWidth,
@@ -44,14 +44,14 @@ export default function MapScreen({ navigation }: any) {
       // console.log(`Perc X: ${deltaX / screenWidth * 100} | Perc Y: ${deltaY / screenHeight * 100}`);
 
       if(
-        percY < 0.04 &&
+        percY < 0.1 &&
         percX > 0.3
       ) {
         if(swipeStart.x < 20) {
           console.log("Open MenuModal");
           navigation.navigate("MenuModal");
         } else if(screenWidth - swipeStart.x < 20) {
-          if(pouringSerialNumber) {
+          if(nowPouring) {
             console.log("Open PouringModal");
             navigation.navigate("PouringModal");
           } else {
