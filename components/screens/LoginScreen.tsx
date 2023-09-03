@@ -1,13 +1,12 @@
 import * as React from "react";
 import { View, Text, TextInput, SafeAreaView, Button, ToastAndroid } from "react-native";
 import Checkbox from "expo-checkbox";
-import { AuthController } from "../../controllers/AuthController";
-import { SimpleError } from "../../types/SimpleError";
-import * as SecureStore from "expo-secure-store";
-import { SessionContext } from "../../contexts/SessionContext";
+import { AppContext } from "../../contexts/AppContext";
+import { TokensContext } from "../../contexts/TokensContext";
 
 export function LoginScreen() {
-  const { setSession } = React.useContext(SessionContext);
+  const { providers } = React.useContext(AppContext);
+  const { setTokens } = React.useContext(TokensContext);
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -19,11 +18,11 @@ export function LoginScreen() {
     setLoading(true);
 
     try {
-      const session = await AuthController.logIn(email, password, rememberMe);
-      await SecureStore.setItemAsync("session", session);
-      setSession(session);
-    } catch (se) {
-      ToastAndroid.show((se as SimpleError).displayMessage, ToastAndroid.SHORT);
+      const tokens = await providers.auth.login(email, password, rememberMe);
+      setTokens(tokens);
+    } catch (e) {
+      ToastAndroid.show("Failed to log in", ToastAndroid.SHORT);
+      console.log("Login error", e);
     }
 
     setLoading(false);
@@ -65,7 +64,7 @@ export function LoginScreen() {
           style={{
             marginLeft: 10,
           }}
-        >Remember me for 30 days</Text>
+        >Remember me</Text>
       </View>
       <Button
         title={loading ? "Loading" : "Log in"}

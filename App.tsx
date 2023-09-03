@@ -1,65 +1,109 @@
 import * as React from "react";
 import { LoginScreen } from "./components/screens/LoginScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { NavigationContainer, StackActions, useNavigation, useNavigationContainerRef } from "@react-navigation/native";
-import * as SecureStore from "expo-secure-store";
-import { SessionContext } from "./contexts/SessionContext";
-import { AuthController } from "./controllers/AuthController";
-import { ToastAndroid } from "react-native";
+import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
 import { MainScreen } from "./components/screens/MainScreen";
+import { Tokens } from "./utils/Tokens";
+import { AuthProvider } from "./providers/Auth";
+import { Meta } from "./types/Meta";
+import { TokensContext } from "./contexts/TokensContext";
+import { AppContext } from "./contexts/AppContext";
+import * as SecureStore from "expo-secure-store";
+import { ApiClient } from "./utils/Requests";
+import { UserProvider } from "./providers/User";
+import { UserExtended } from "./types/User";
+import { UserContext } from "./contexts/UserContext";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const navigationRef = useNavigationContainerRef();
+  const [tokens, setTokens] = React.useState<Tokens | undefined>(undefined);
+  const [user, setUser] = React.useState<UserExtended | undefined>(undefined);
 
-  const [session, setSession] = React.useState<string | undefined>(undefined);
-  const [accountEmail, setAccountEmail] = React.useState<string | undefined>(undefined);
+  const meta: Meta = {
+    version: "0.0.1",
+    hash: "no-commit",
+  };
+
+  const authProvider = new AuthProvider("https://api.autobar.ovh/auth", meta);
+
+  const apiClient = new ApiClient(authProvider, meta, setTokens);
+  const userProvider = new UserProvider("https://api.autobar.ovh/user", apiClient);
 
   React.useEffect(() => {
-    SecureStore.getItemAsync("session").then(sessionFromSecureStore => {
-      console.log(`Session from secure store: ${sessionFromSecureStore}`);
+    SecureStore.getItemAsync("refresh_token").then(async refreshTokenFromSecureStore => {
+      // console.log("Refresh token from secure store: " + refreshTokenFromSecureStore);
 
-      if (sessionFromSecureStore) {
-        setSession(sessionFromSecureStore);
+      if (!!refreshTokenFromSecureStore) {
+        try {
+          const tokens = await authProvider.refresh(refreshTokenFromSecureStore);
+          setTokens(tokens);
+          console.log("Successfully refreshed tokens");
+        } catch (e) {
+          console.log("Failed to refresh tokens: " + e);
+          setTokens(undefined);
+        }
       }
     });
   }, []);
 
   React.useEffect(() => {
-    AuthController.verifySession(session).then(email => {
-      console.log(`Verifying session: ${session}`);
-      console.log(`Account associated with session: ${email}`);
+    // console.log("Tokens changed", tokens);
 
-      if (email) {
-        setAccountEmail(email);
-
+    if (!tokens) {
+      SecureStore.deleteItemAsync("refresh_token").then(() => {
         navigationRef.resetRoot({
           index: 0,
-          routes: [{ name: "Main" }],
+          routes: [{ name: "Login" }],
         });
-      } else {
-        SecureStore.deleteItemAsync("session");
-        ToastAndroid.show("session has expired", ToastAndroid.SHORT);
-      }
-    }).catch(_e => { });
-  }, [session]);
+      }).catch(_e => {});
+    } else {
+      SecureStore.setItemAsync("refresh_token", tokens.refresh_token)
+        .then(async () => {
+          const user = await userProvider.whoAmI(tokens);
+          setUser(user);
+
+          if (navigationRef.getCurrentRoute()?.name === "Login") {
+            navigationRef.resetRoot({
+              index: 0,
+              routes: [{ name: "Main" }],
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [tokens]);
 
   return (
-    <SessionContext.Provider
+    <AppContext.Provider
       value={{
-        session,
-        setSession,
-        accountEmail,
-        setAccountEmail,
+        providers: {
+          auth: authProvider,
+          user: userProvider,
+        },
       }}
     >
-      <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Main" component={MainScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SessionContext.Provider>
+      <TokensContext.Provider
+        value={{
+          tokens: tokens,
+          setTokens: setTokens,
+        }}
+      >
+        <UserContext.Provider
+          value={{
+            user: user,
+            setUser: setUser,
+          }}
+        >
+          <NavigationContainer ref={navigationRef}>
+            <Stack.Navigator>
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Main" component={MainScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </UserContext.Provider>
+      </TokensContext.Provider>
+    </AppContext.Provider>
   );
 }

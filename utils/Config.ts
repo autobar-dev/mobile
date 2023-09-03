@@ -1,3 +1,5 @@
-export const Config = {
-  AUTH_SERVICE_URL: "https://0107-213-186-89-190.ngrok-free.app",
+export type Config = {
+  EXPO_PUBLIC_AUTH_SERVICE_URL: string,
 };
+
+export const config = process.env as Config;
