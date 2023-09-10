@@ -1,14 +1,14 @@
-import { User } from "../types/User";
+import { Product } from "../types/Product";
 import { ApiClient } from "../utils/Requests";
 import { Tokens } from "../utils/Tokens";
 
-type UserResponse = {
+type GetProductResponse = {
   status: "ok" | "error",
-  error?: string,
-  data?: User,
+  error: string | null,
+  data: Product | null,
 };
 
-export class UserProvider {
+export class ProductProvider {
   private service_url: string;
   private api_client: ApiClient;
 
@@ -17,13 +17,13 @@ export class UserProvider {
     this.api_client = api_client;
   }
 
-  public async whoAmI(tokens: Tokens): Promise<User> {
-    const url = `${this.service_url}/who-am-i`;
-    const response_data = await this.api_client.makeGetRequest<UserResponse>(url, tokens);
+  public async getProduct(tokens: Tokens, id: string): Promise<Product> {
+    const url = `${this.service_url}/?id=${id}`;
+    const response_data = await this.api_client.makeGetRequest<GetProductResponse>(url, tokens);
 
     if (response_data.status !== "ok") {
       console.log(response_data);
-      throw new Error("WhoAmI error: " + response_data.error);
+      throw new Error("Get product error: " + response_data.error);
     }
 
     return response_data.data;

@@ -28,6 +28,26 @@ export class AuthProvider {
     this.user_agent = metaToUserAgent(meta);
   }
 
+  public async meta(): Promise<any> {
+
+    const response = await fetch(`${this.service_url}/meta`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": this.user_agent,
+      },
+      // signal: AbortSignal.timeout(10000),
+    });
+
+    const response_data = await response.json();
+
+    if (response_data.status !== "ok") {
+      throw new Error("Meta error: " + response_data.error);
+    }
+
+    return response_data.data;
+  }
+
   public async login(email: string, password: string, remember_me: boolean): Promise<Tokens> {
     const response = await fetch(`${this.service_url}/user/login`, {
       method: "POST",

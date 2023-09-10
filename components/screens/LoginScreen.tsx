@@ -1,5 +1,6 @@
 import * as React from "react";
-import { View, Text, TextInput, SafeAreaView, Button, ToastAndroid } from "react-native";
+import { View, Text, TextInput, Button, ToastAndroid } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Checkbox from "expo-checkbox";
 import { AppContext } from "../../contexts/AppContext";
 import { TokensContext } from "../../contexts/TokensContext";

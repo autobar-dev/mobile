@@ -1,5 +1,3 @@
-import { Wallet } from "./Wallet";
-
 export type User = {
   id: string,
   email: string,
@@ -13,6 +11,3 @@ export type User = {
   updated_at: string,
 };
 
-export type UserExtended = User & {
-  wallet: Wallet,
-};

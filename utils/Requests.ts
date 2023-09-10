@@ -37,4 +37,30 @@ export class ApiClient {
       this.makeGetRequest(url, new_tokens, true); // retry request
     }
   }
+
+  async makePostRequest<T>(url: string, body: any, tokens: Tokens, is_retry: boolean = false): Promise<T> {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": this.user_agent,
+          "Authorization": `Bearer ${tokens.access_token}`
+        },
+      });
+
+      return await response.json() as T;
+    } catch (error) {
+      if (is_retry) {
+        throw new Error("Retry failed. Error: " + error);
+      }
+
+      const new_tokens = await this.auth_provider.refresh(tokens.refresh_token);
+      this.set_tokens(new_tokens);
+
+      this.makePostRequest(url, body, new_tokens, true); // retry request
+    }
+  }
 }
+
