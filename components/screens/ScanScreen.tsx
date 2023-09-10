@@ -30,8 +30,10 @@ export function ScanScreen() {
             onChangeText={setSerialNumberInput}
             value={serialNumberInput}
             style={{
+              height: 60,
               fontSize: 24,
               marginBottom: 8,
+              borderBottomWidth: 1,
             }}
           />
           <TextInput
@@ -39,8 +41,10 @@ export function ScanScreen() {
             onChangeText={setOtkInput}
             value={otkInput}
             style={{
+              height: 60,
               fontSize: 24,
               marginBottom: 8,
+              borderBottomWidth: 1,
             }}
           />
           <Button
