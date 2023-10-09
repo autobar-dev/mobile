@@ -25,6 +25,8 @@ import { ScanScreen } from './components/screens/ScanScreen';
 import { ModuleProvider } from './providers/Module';
 import { ProductProvider } from './providers/Product';
 import { ActivatedScreen } from './components/screens/ActivatedScreen';
+import { HeaderNfcIndicator } from './components/molecules/HeaderNfcIndicator';
+import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 
 const Drawer = createDrawerNavigator();
 
@@ -158,6 +160,22 @@ export default function App() {
 
   }, [tokens]);
 
+  // NFC handler
+  const readNfcTag = () => {
+    console.log("Reading NFC tag");
+    NfcManager.requestTechnology(NfcTech.NfcV)
+      .then(async () => {
+        const tag = await NfcManager.getTag();
+        console.log("Tag", tag);
+      })
+      .catch(e => {
+        console.warn("Error reading NFC tag", e);
+      })
+      .finally(() => {
+        NfcManager.cancelTechnologyRequest();
+      });
+  }
+
   // Hide splash screen after fetching user
   const onLayoutRootView = React.useCallback(async () => {
     if (appIsReady) {
@@ -224,7 +242,8 @@ export default function App() {
                   drawerItemStyle: {
                     display: "none",
                   },
-                })} />
+                })}
+              />
               <Drawer.Screen
                 name="Activated"
                 component={ActivatedScreen}
@@ -234,8 +253,17 @@ export default function App() {
                   drawerItemStyle: {
                     display: "none",
                   },
-                })} />
-              <Drawer.Screen name="Main" component={MainScreen} />
+                })}
+              />
+
+              {/* Drawer items */}
+              <Drawer.Screen
+                name="Main"
+                component={MainScreen}
+                options={() => ({
+                  headerRight: () => <HeaderNfcIndicator onPress={readNfcTag} />,
+                })}
+              />
               <Drawer.Screen name="Wallet" component={WalletScreen} />
               <Drawer.Screen name="Scan" component={ScanScreen} />
             </Drawer.Navigator>
