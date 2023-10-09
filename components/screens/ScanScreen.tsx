@@ -9,7 +9,7 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import * as Haptics from "expo-haptics";
 import Spinner from "react-native-loading-spinner-overlay";
 
-const urlRegex = /^https:\/\/autobar.ovh\/activate\/([A-Z0-9]{6})\/([a-zA-Z0-9]{12})$/g;
+const urlRegex = /^https:\/\/a5r.ovh\/a\/([A-Z0-9]{6})\/([a-zA-Z0-9]{12})$/g;
 
 export function ScanScreen() {
   const navigation = useNavigation();
