@@ -1,10 +1,15 @@
 import * as React from "react";
-import { Button, View } from "react-native";
+import { Button, Text, View, StyleSheet } from "react-native";
 import { AppContext } from "../../contexts/AppContext";
 import { TokensContext } from "../../contexts/TokensContext";
 import { TextInput } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import * as Haptics from "expo-haptics";
+import Spinner from "react-native-loading-spinner-overlay";
+
+const urlRegex = /^https:\/\/autobar.ovh\/activate\/([A-Z0-9]{6})\/([a-zA-Z0-9]{12})$/g;
 
 export function ScanScreen() {
   const navigation = useNavigation();
@@ -12,59 +17,90 @@ export function ScanScreen() {
   const { tokens } = React.useContext(TokensContext);
   const { providers } = React.useContext(AppContext);
 
-  const [serialNumberInput, setSerialNumberInput] = React.useState<string>("");
-  const [otkInput, setOtkInput] = React.useState<string>("");
+  const [cameraPermission, setCameraPermission] = React.useState<boolean>(false);
 
+  const [scanned, setScanned] = React.useState<boolean>(false);
   const [activateLoading, setActivateLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    (async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setCameraPermission(status === "granted");
+    })();
+  }, []);
+
+  const handleBarcodeScanned = ({ type, data }) => {
+    if (scanned) {
+      return;
+    }
+
+    setScanned(true);
+
+    let matches = [...data.matchAll(urlRegex)];
+
+    if (matches.length == 0) {
+      console.log("Invalid QR code. Matches:", matches);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setScanned(false);
+      return;
+    }
+
+    const serialNumber = matches[0][1];
+    const otk = matches[0][2];
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    console.log(`Activating ${serialNumber} with OTK ${otk}...`);
+
+    activate(serialNumber, otk);
+  }
+
+  const activate = (serialNumber: string, otk: string) => {
+    new Promise(async (resolve, reject) => {
+      setActivateLoading(true);
+
+      console.log("Activating module");
+
+      try {
+        await providers.module.activate(tokens, serialNumber, otk);
+        console.log("Module activated");
+        setScanned(false);
+        navigation.navigate("Activated", {
+          serial_number: serialNumber,
+        });
+      } catch (e) {
+        console.log("Error activating module", e);
+      }
+
+      setActivateLoading(false);
+    });
+  }
 
   return (
     <>
       <SafeAreaView>
         <View
           style={{
+            width: "100%",
+            height: "100%",
             padding: 16,
           }}
         >
-          <TextInput
-            placeholder="Serial number"
-            onChangeText={setSerialNumberInput}
-            value={serialNumberInput}
-            style={{
-              height: 60,
-              fontSize: 24,
-              marginBottom: 8,
-              borderBottomWidth: 1,
-            }}
+          <Spinner
+            visible={activateLoading}
+            textContent={"Activating..."}
+            textStyle={{ color: "#FFF" }}
           />
-          <TextInput
-            placeholder="OTK"
-            onChangeText={setOtkInput}
-            value={otkInput}
-            style={{
-              height: 60,
-              fontSize: 24,
-              marginBottom: 8,
-              borderBottomWidth: 1,
-            }}
-          />
-          <Button
-            title={activateLoading ? "Activating..." : "Activate"}
-            disabled={activateLoading}
-            onPress={async () => {
-              setActivateLoading(true);
-
-              try {
-                await providers.module.activate(tokens, serialNumberInput, otkInput);
-                navigation.navigate("Activated", {
-                  serial_number: serialNumberInput,
-                });
-              } catch (e) {
-                console.log("Error activating module", e);
-              }
-
-              setActivateLoading(false);
-            }}
-          />
+          {
+            cameraPermission ? (
+              <BarCodeScanner
+                onBarCodeScanned={handleBarcodeScanned}
+                style={StyleSheet.absoluteFillObject}
+              />
+            ) : (
+              <Text>Camera permission not granted</Text>
+            )
+          }
         </View>
       </SafeAreaView>
     </>
