@@ -1,8 +1,7 @@
 import * as React from "react";
-import { Button, Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, Button } from "react-native";
 import { AppContext } from "../../contexts/AppContext";
 import { TokensContext } from "../../contexts/TokensContext";
-import { TextInput } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BarCodeScanner } from "expo-barcode-scanner";
@@ -22,11 +21,13 @@ export function ScanScreen() {
   const [scanned, setScanned] = React.useState<boolean>(false);
   const [activateLoading, setActivateLoading] = React.useState<boolean>(false);
 
+  const requestCameraPermissions = async () => {
+    const { status } = await BarCodeScanner.requestPermissionsAsync();
+    setCameraPermission(status === "granted");
+  };
+
   React.useEffect(() => {
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setCameraPermission(status === "granted");
-    })();
+    requestCameraPermissions();
   }, []);
 
   const handleBarcodeScanned = ({ type, data }) => {
@@ -98,7 +99,13 @@ export function ScanScreen() {
                 style={StyleSheet.absoluteFillObject}
               />
             ) : (
-              <Text>Camera permission not granted</Text>
+              <View>
+                <Text>Camera permission not granted</Text>
+                <Button
+                  onPress={() => requestCameraPermissions()}
+                  title="Grant access"
+                />
+              </View>
             )
           }
         </View>

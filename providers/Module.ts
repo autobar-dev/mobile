@@ -1,3 +1,4 @@
+import { ActivationSession } from "../types/ActivationSession";
 import { Module } from "../types/Module";
 import { ApiClient } from "../utils/Requests";
 import { Tokens } from "../utils/Tokens";
@@ -18,6 +19,12 @@ type DeactivateResponse = {
   error: string | null,
 };
 
+type GetActivationSessionResponse = {
+  status: "ok" | "error",
+  error: string | null,
+  data: ActivationSession | null,
+};
+
 export class ModuleProvider {
   private service_url: string;
   private api_client: ApiClient;
@@ -30,6 +37,18 @@ export class ModuleProvider {
   public async getModule(tokens: Tokens, serial_number: string): Promise<Module> {
     const url = `${this.service_url}/?serial_number=${serial_number}`;
     const response_data = await this.api_client.makeGetRequest<GetModuleResponse>(url, tokens);
+
+    if (response_data.status !== "ok") {
+      console.log(response_data);
+      throw new Error("Get module error: " + response_data.error);
+    }
+
+    return response_data.data;
+  }
+
+  public async getActivationSession(tokens: Tokens): Promise<ActivationSession> {
+    const url = `${this.service_url}/activation-session`;
+    const response_data = await this.api_client.makeGetRequest<GetActivationSessionResponse>(url, tokens);
 
     if (response_data.status !== "ok") {
       console.log(response_data);
