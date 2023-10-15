@@ -72,6 +72,8 @@ export class AuthProvider {
   }
 
   public async refresh(refresh_token: string): Promise<Tokens> {
+    console.log("AuthRepository: Refreshing tokens");
+
     const response = await fetch(`${this.service_url}/refresh`, {
       method: "POST",
       headers: {

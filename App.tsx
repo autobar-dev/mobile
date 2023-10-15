@@ -212,13 +212,16 @@ export default function App() {
               }],
               index: 0,
             }}
+
             onReady={onLayoutRootView}
           >
+            {/* hidden screens */}
             <Drawer.Navigator>
               <Drawer.Screen
                 name="Login"
                 component={LoginScreen}
                 options={() => ({
+                  unmountOnBlur: true,
                   headerShown: false,
                   swipeEnabled: false,
                   drawerItemStyle: {
@@ -229,15 +232,24 @@ export default function App() {
                 name="Activated"
                 component={ActivatedScreen}
                 options={() => ({
+                  unmountOnBlur: true,
                   headerShown: false,
                   swipeEnabled: false,
                   drawerItemStyle: {
                     display: "none",
                   },
                 })} />
+
+              {/* visible screens */}
               <Drawer.Screen name="Main" component={MainScreen} />
               <Drawer.Screen name="Wallet" component={WalletScreen} />
-              <Drawer.Screen name="Scan" component={ScanScreen} />
+              <Drawer.Screen
+                name="Scan"
+                component={ScanScreen}
+                options={() => ({
+                  unmountOnBlur: true,
+                })}
+              />
             </Drawer.Navigator>
           </NavigationContainer>
         </UserContext.Provider>
