@@ -5,7 +5,11 @@ import { Tokens } from "../utils/Tokens";
 type GetProductResponse = {
   status: "ok" | "error",
   error: string | null,
-  data: Product | null,
+  data: {
+    product: Product | null,
+    redirect_slug: string | null,
+    type: "product" | "redirect",
+  } | null,
 };
 
 export class ProductProvider {
@@ -26,6 +30,12 @@ export class ProductProvider {
       throw new Error("Get product error: " + response_data.error);
     }
 
-    return response_data.data;
+    const name_map = new Map<string, string>(Object.entries(response_data.data.product.names));
+    const description_map = new Map<string, string>(Object.entries(response_data.data.product.descriptions));
+
+    response_data.data.product.names = name_map;
+    response_data.data.product.descriptions = description_map;
+
+    return response_data.data.product;
   }
 }

@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Button, ScrollView, Text, View } from "react-native";
+import { Button, ScrollView, Text, View, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppContext } from "../../contexts/AppContext";
 import { TokensContext } from "../../contexts/TokensContext";
 import { ActivationSession } from "../../types/ActivationSession";
 import { Module } from "../../types/Module";
-import { Product } from "../../types/Product";
+import { Product, ProductBadge } from "../../types/Product";
+import { Badge } from "../atoms/Badge";
 
 export function ActivatedScreen({ route, navigation }) {
   const { serial_number } = route.params;
@@ -17,15 +18,18 @@ export function ActivatedScreen({ route, navigation }) {
   const [product, setProduct] = React.useState<Product | undefined>(undefined);
   const [activationSession, setActivationSession] = React.useState<ActivationSession | undefined>(undefined);
 
+  const [coverImage, setCoverImage] = React.useState<string | undefined>(undefined);
+  const [productName, setProductName] = React.useState<string | undefined>(undefined);
+  const [productDescription, setProductDescription] = React.useState<string | undefined>(undefined);
+  const [productBadges, setProductBadges] = React.useState<ProductBadge[] | undefined>(undefined);
+
   const [deactivateLoading, setDeactivateLoading] = React.useState<boolean>(false);
 
   const [fetchingActivationSession, setFetchingActivationSession] = React.useState<boolean>(false);
 
-
   const refreshActivationSession = () => {
-    console.log("Refreshing activation session...");
-
     if (fetchingActivationSession) {
+      console.log("Skipping refreshing activation session...");
       return;
     }
 
@@ -49,7 +53,7 @@ export function ActivatedScreen({ route, navigation }) {
   React.useEffect(() => {
     const cancel = setInterval(() => {
       refreshActivationSession();
-    }, 1000);
+    }, 10000);
 
     refreshActivationSession();
 
@@ -65,14 +69,44 @@ export function ActivatedScreen({ route, navigation }) {
 
         providers.product.getProduct(tokens, module.product_id)
           .then(product => {
+            console.log(product);
+            console.log(product.cover);
             setProduct(product);
+
+            const productCoverUrl = product.cover.url;
+            const productName = product.names.values().next().value;
+            const productDescription = product.descriptions.values().next().value;
+            const productBadges: ProductBadge[] = [
+              {
+                type: "primary",
+                label: "ABV",
+                value: `4.9%`,
+              },
+              {
+                type: "secondary",
+                label: "IBU",
+                value: `20`,
+              },
+              {
+                type: "secondary",
+                label: "Tastes",
+                value: "Sweet, Fruity",
+              }
+            ];
+
+            setCoverImage(
+              providers.image.resize(productCoverUrl, 600, 600)
+            );
+            setProductName(productName);
+            setProductDescription(productDescription);
+            setProductBadges(productBadges);
           })
           .catch(e => console.log("Error getting product", e));
       })
       .catch(e => console.log("Error getting module", e));
   }, []);
 
-  if (!module || !product || !activationSession) {
+  if (!module || !product || !activationSession || !coverImage || !productName || !productDescription) {
     return (
       <>
         <Text>Loading...</Text>
@@ -82,49 +116,85 @@ export function ActivatedScreen({ route, navigation }) {
 
   return (
     <>
-      <SafeAreaView>
-        <ScrollView
+      <SafeAreaView
+        style={{
+          flexDirection: "column",
+          flex: 1,
+        }}
+      >
+        <View
           style={{
-            padding: 16,
+            alignItems: "center",
+            flexDirection: "column",
           }}
         >
-          <View
-            style={{
-              marginBottom: 16,
-            }}
-          >
-            <Button
-              onPress={async () => {
-                setDeactivateLoading(true);
+          <Button
+            onPress={async () => {
+              setDeactivateLoading(true);
 
-                try {
-                  await providers.module.deactivate(tokens);
-                  navigation.navigate("Main");
-                } catch (e) {
-                  console.log("Error deactivating module", e);
-                }
+              try {
+                await providers.module.deactivate(tokens);
+                navigation.navigate("Main");
+              } catch (e) {
+                console.log("Error deactivating module", e);
+              }
 
-                setDeactivateLoading(false);
-              }}
-              title={deactivateLoading ? "Deactivating..." : "Deactivate"}
-              disabled={deactivateLoading}
-            />
-          </View>
+              setDeactivateLoading(false);
+            }}
+            title={deactivateLoading ? "Deactivating..." : "Deactivate"}
+            disabled={deactivateLoading}
+          />
+          <Image
+            style={{
+              width: 200,
+              height: 200,
+              marginTop: 25,
+              borderRadius: 10,
+              backgroundColor: "#eee",
+            }}
+            source={{
+              uri: coverImage,
+            }}
+          />
           <Text
             style={{
-              marginBottom: 8,
+              marginTop: 26,
+              fontSize: 24,
+              fontWeight: "bold",
             }}
-          >Module: {module ? JSON.stringify(module) : ""}</Text>
+          >{productName}</Text>
+        </View>
+        <ScrollView
+          style={{
+            flex: 1,
+            marginTop: 16,
+          }}
+        >
+          {productBadges && (
+            <ScrollView
+              horizontal={true}
+            >
+              {productBadges.map((badge, i) => (
+                <Badge
+                  type={badge.type}
+                  color="#000"
+                  label={badge.label}
+                  value={badge.value}
+                  style={{
+                    marginLeft: i == 0 ? 16 : 0,
+                    marginRight: i == productBadges.length - 1 ? 16 : 8,
+                  }}
+                />
+              ))}
+            </ScrollView>
+          )}
           <Text
             style={{
-              marginBottom: 8,
+              marginTop: 14,
+              paddingHorizontal: 16,
+              textAlign: "justify",
             }}
-          >Product: {product ? JSON.stringify(product) : ""}</Text>
-          <Text
-            style={{
-              marginBottom: 8,
-            }}
-          >Activation session: {activationSession ? JSON.stringify(activationSession) : ""}</Text>
+          >{productDescription}</Text>
         </ScrollView>
       </SafeAreaView>
     </>

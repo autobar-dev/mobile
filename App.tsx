@@ -25,6 +25,7 @@ import { ScanScreen } from './components/screens/ScanScreen';
 import { ModuleProvider } from './providers/Module';
 import { ProductProvider } from './providers/Product';
 import { ActivatedScreen } from './components/screens/ActivatedScreen';
+import { ImageProvider } from './providers/Image';
 
 const Drawer = createDrawerNavigator();
 
@@ -59,6 +60,7 @@ export default function App() {
   const currencyProvider = new CurrencyProvider("https://api.autobar.ovh/currency", apiClient);
   const moduleProvider = new ModuleProvider("https://api.autobar.ovh/module", apiClient);
   const productProvider = new ProductProvider("https://api.autobar.ovh/product", apiClient);
+  const imageProvider = new ImageProvider("http://raw.adampisula.pizza:8002");
 
   React.useEffect(() => {
     async function prepare() {
@@ -180,6 +182,7 @@ export default function App() {
           currency: currencyProvider,
           module: moduleProvider,
           product: productProvider,
+          image: imageProvider,
         },
       }}
     >

@@ -5,6 +5,7 @@ import { ModuleProvider } from "../providers/Module";
 import { UserProvider } from "../providers/User";
 import { WalletProvider } from "../providers/Wallet";
 import { ProductProvider } from "../providers/Product";
+import { ImageProvider } from "../providers/Image";
 
 export type AppContextType = {
   providers: {
@@ -14,6 +15,7 @@ export type AppContextType = {
     currency: CurrencyProvider,
     module: ModuleProvider,
     product: ProductProvider,
+    image: ImageProvider,
   },
 };
 

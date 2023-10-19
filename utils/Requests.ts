@@ -3,6 +3,11 @@ import { Meta } from "../types/Meta";
 import { metaToUserAgent } from "./Meta";
 import { Tokens } from "./Tokens";
 
+type ApiResponse = {
+  status: "ok" | "error",
+  error: string | null,
+};
+
 export class ApiClient {
   private auth_provider: AuthProvider;
   private user_agent: string;
@@ -25,7 +30,15 @@ export class ApiClient {
         },
       });
 
-      return await response.json() as T;
+      const response_data = await response.json();
+      const api_response = response_data as ApiResponse;
+
+      if (api_response.status !== "ok") {
+        console.log(api_response);
+        throw new Error("Api error: " + api_response.error);
+      }
+
+      return response_data as T;
     } catch (error) {
       if (is_retry) {
         throw new Error("Retry failed. Error: " + error);
@@ -50,7 +63,15 @@ export class ApiClient {
         },
       });
 
-      return await response.json() as T;
+      const response_data = await response.json();
+      const api_response = response_data as ApiResponse;
+
+      if (api_response.status !== "ok") {
+        console.log(api_response);
+        throw new Error("Api error: " + api_response.error);
+      }
+
+      return response_data as T;
     } catch (error) {
       if (is_retry) {
         throw new Error("Retry failed. Error: " + error);
