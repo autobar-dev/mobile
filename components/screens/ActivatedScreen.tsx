@@ -76,23 +76,6 @@ export function ActivatedScreen({ route, navigation }) {
             const productCoverUrl = product.cover.url;
             const productName = product.names.values().next().value;
             const productDescription = product.descriptions.values().next().value;
-            const productBadges: ProductBadge[] = [
-              {
-                type: "primary",
-                label: "ABV",
-                value: `4.9%`,
-              },
-              {
-                type: "secondary",
-                label: "IBU",
-                value: `20`,
-              },
-              {
-                type: "secondary",
-                label: "Tastes",
-                value: "Sweet, Fruity",
-              }
-            ];
 
             setCoverImage(
               providers.image.resize(productCoverUrl, 600, 600)
@@ -128,22 +111,28 @@ export function ActivatedScreen({ route, navigation }) {
             flexDirection: "column",
           }}
         >
-          <Button
-            onPress={async () => {
-              setDeactivateLoading(true);
-
-              try {
-                await providers.module.deactivate(tokens);
-                navigation.navigate("Main");
-              } catch (e) {
-                console.log("Error deactivating module", e);
-              }
-
-              setDeactivateLoading(false);
+          <View
+            style={{
+              marginTop: 16,
             }}
-            title={deactivateLoading ? "Deactivating..." : "Deactivate"}
-            disabled={deactivateLoading}
-          />
+          >
+            <Button
+              onPress={async () => {
+                setDeactivateLoading(true);
+
+                try {
+                  await providers.module.deactivate(tokens);
+                  navigation.navigate("Main");
+                } catch (e) {
+                  console.log("Error deactivating module", e);
+                }
+
+                setDeactivateLoading(false);
+              }}
+              title={deactivateLoading ? "Deactivating..." : "Deactivate"}
+              disabled={deactivateLoading}
+            />
+          </View>
           <Image
             style={{
               width: 200,
@@ -170,19 +159,20 @@ export function ActivatedScreen({ route, navigation }) {
             marginTop: 16,
           }}
         >
-          {productBadges && (
+          {product.badges && (
             <ScrollView
               horizontal={true}
             >
-              {productBadges.map((badge, i) => (
+              {product.badges.map((badge, i) => (
                 <Badge
                   type={badge.type}
                   color="#000"
                   label={badge.label}
                   value={badge.value}
+                  key={`product-badge-${i}`}
                   style={{
                     marginLeft: i == 0 ? 16 : 0,
-                    marginRight: i == productBadges.length - 1 ? 16 : 8,
+                    marginRight: i == product.badges.length - 1 ? 16 : 8,
                   }}
                 />
               ))}

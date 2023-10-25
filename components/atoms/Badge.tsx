@@ -5,7 +5,7 @@ export function Badge({ color, type, label, value, style }: {
   type: "primary" | "secondary",
   color: string,
   label: string,
-  value?: string,
+  value: string | null,
   style?: any,
 }) {
   return (
@@ -27,7 +27,7 @@ export function Badge({ color, type, label, value, style }: {
           fontWeight: "bold",
           fontSize: 16,
         }}
-      >{`${label}${value && ":"}`}</Text>
+      >{`${label}${value !== null ? ":" : ""}`}</Text>
       {value && (
         <Text
           style={{
