@@ -25,6 +25,7 @@ import { ScanScreen } from './components/screens/ScanScreen';
 import { ModuleProvider } from './providers/Module';
 import { ProductProvider } from './providers/Product';
 import { ActivatedScreen } from './components/screens/ActivatedScreen';
+import { SearchScreen } from './components/screens/SearchScreen';
 import { ImageProvider } from './providers/Image';
 
 const Drawer = createDrawerNavigator();
@@ -245,6 +246,7 @@ export default function App() {
 
               {/* visible screens */}
               <Drawer.Screen name="Main" component={MainScreen} />
+              <Drawer.Screen name="Search" component={SearchScreen} />
               <Drawer.Screen name="Wallet" component={WalletScreen} />
               <Drawer.Screen
                 name="Scan"
